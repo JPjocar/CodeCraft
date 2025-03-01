@@ -4,6 +4,8 @@
  */
 package com.cosmos.CodeCraft.Tests;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.modelmapper.ModelMapper;
 
@@ -13,8 +15,6 @@ import org.modelmapper.ModelMapper;
  */
 public class MainTests {
     public static void main(String[] args) {
-        ModelMapper mopMapper = new ModelMapper();
-        System.out.println(mopMapper.map(new Uno(), Dos.class));
-        System.out.println(Paths.get("uploads"));
+        System.out.println(Files.exists(Paths.get("src")));
     }
 }

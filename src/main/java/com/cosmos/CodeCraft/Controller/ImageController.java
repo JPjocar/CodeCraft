@@ -22,8 +22,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping(path = "uploads")
@@ -35,26 +38,28 @@ public class ImageController {
     //Retornar recurso de imagen
     @GetMapping("/{filename}")
     public ResponseEntity<Resource> get(@PathVariable("filename") String filename){
-        
         try {
             Path file = StaticRoutes.pathUploads().resolve(filename).normalize();
             Resource resource = new UrlResource(file.toUri());
-            
             if(!resource.exists() && !resource.isReadable()){
                 return ResponseEntity.notFound().build();  
             }
-            
             return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(resource.getURL().openConnection().getContentType()))
                         .header("Content-Disposition", "inline; filename=\""+filename+"\"")
                         .header("Cache-Control", "public, max-age=31536000")
                         .body(resource);
-            
         } catch (IOException ex) {
             return ResponseEntity.internalServerError().build();
-        } 
-        
-        
+        }  
+    }
+    
+    @PostMapping
+    public ResponseEntity<String> create(@RequestParam("image_file") MultipartFile image_file) throws IOException{
+        String imageUrl = this.imageService.create(image_file);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(imageUrl);
     }
     
     

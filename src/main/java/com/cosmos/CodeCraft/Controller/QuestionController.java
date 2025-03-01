@@ -12,10 +12,12 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,8 +30,8 @@ public class QuestionController {
     private QuestionService questionService;
     
     @GetMapping("/{id}")
-    public ResponseEntity<QuestionDTO> show(@PathVariable("id") Long id){
-        QuestionDTO question = this.questionService.get(id);
+    public ResponseEntity<QuestionResponseDTO> show(@PathVariable("id") Long id){
+        QuestionResponseDTO question = this.questionService.get(id);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(question);
@@ -44,6 +46,34 @@ public class QuestionController {
                 .status(HttpStatus.CREATED)
                 .body(questionCreated);
     }
+    
+    //Create Question with tags
+    @PostMapping("/create")
+    public ResponseEntity<QuestionResponseDTO> create2(@RequestBody @Valid QuestionCreationDTO questionCreationDTO){
+        QuestionResponseDTO questionCreated = this.questionService.create2(questionCreationDTO);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(questionCreated);
+    }
+    
+    //Delete question
+    @DeleteMapping("/{question_id}")
+    public ResponseEntity<String> delete(@PathVariable("question_id") Long id){
+        String resul = this.questionService.delete(id);
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .body(resul);
+    }
+    
+    @PutMapping("/{question_id}")
+    public ResponseEntity<QuestionResponseDTO> update(@RequestBody QuestionCreationDTO questionCreationDTO, @PathVariable("question_id") Long id){
+        QuestionResponseDTO questionResponseDTO = this.questionService.update(questionCreationDTO, id);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(questionResponseDTO);
+    }
+    
+    
     
     
     //Create only question

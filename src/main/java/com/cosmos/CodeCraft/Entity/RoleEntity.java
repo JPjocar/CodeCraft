@@ -11,13 +11,13 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,25 +25,18 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "answers")
+@Table(name = "roles")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
-public class AnswerEntity {
+public class RoleEntity {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(columnDefinition = "TEXT")
-    private String content;
+    private String name;
     
-    private int score;
-    
-    private boolean is_correct;
-    
-    @OneToMany(targetEntity = CommentEntity.class, fetch = FetchType.LAZY, mappedBy = "answerEntity", cascade = {CascadeType.REMOVE})
-    private List<CommentEntity> comments = new ArrayList<>();
     
     @CreationTimestamp
     @Column(columnDefinition = "TIMESTAMP", updatable = false, nullable = false)
@@ -53,9 +46,8 @@ public class AnswerEntity {
     @Column(columnDefinition = "TIMESTAMP", nullable = false)
     private LocalDateTime updated_at;
     
-    @ManyToOne(targetEntity = QuestionEntity.class, fetch = FetchType.LAZY)
-    private QuestionEntity question;
     
-    @ManyToOne(targetEntity = UserEntity.class)
-    private UserEntity user;
+    @ManyToMany(targetEntity = PermissionEntity.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(name = "roles_permissions", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
+    private Set<PermissionEntity> permissions;
 }

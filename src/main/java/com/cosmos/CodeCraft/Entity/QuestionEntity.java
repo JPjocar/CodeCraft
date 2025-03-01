@@ -12,13 +12,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "questions")
@@ -36,10 +43,26 @@ public class QuestionEntity {
     @Column(columnDefinition = "TEXT")
     private String content;
     
-    private LocalDate updated_at;
-    private LocalDate created_at;
+    private int views;
     
-    @OneToMany(targetEntity = AnswerEntity.class, cascade = CascadeType.ALL)
-    @JoinColumn(name = "question_id")
-    private List<AnswerEntity> answers;
+    private int score;
+    
+    @CreationTimestamp
+    @Column(columnDefinition = "TIMESTAMP", nullable = false, updatable = false)
+    private LocalDateTime created_at;
+    
+    @UpdateTimestamp
+    @Column(columnDefinition = "TIMESTAMP", nullable = false)
+    private LocalDateTime updated_at;
+    
+    
+    @OneToMany(targetEntity = AnswerEntity.class, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, mappedBy = "question")
+    private List<AnswerEntity> answers = new ArrayList<>();
+    
+    @ManyToMany(targetEntity = TagEntity.class, fetch = FetchType.EAGER)
+    private Set<TagEntity> Tags = new HashSet<>();
+    
+    
+    @OneToMany(targetEntity = CommentEntity.class, fetch = FetchType.LAZY, mappedBy = "questionEntity", cascade = {CascadeType.REMOVE})
+    private List<CommentEntity> comments = new ArrayList<>();
 }

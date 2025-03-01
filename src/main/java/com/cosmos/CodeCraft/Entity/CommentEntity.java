@@ -4,20 +4,14 @@
  */
 package com.cosmos.CodeCraft.Entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,12 +19,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "answers")
+@Table(name = "comments")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
-public class AnswerEntity {
+public class CommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -38,12 +31,17 @@ public class AnswerEntity {
     @Column(columnDefinition = "TEXT")
     private String content;
     
-    private int score;
+    private String post_type;
     
-    private boolean is_correct;
+    @ManyToOne(targetEntity = UserEntity.class)
+    private UserEntity user;
     
-    @OneToMany(targetEntity = CommentEntity.class, fetch = FetchType.LAZY, mappedBy = "answerEntity", cascade = {CascadeType.REMOVE})
-    private List<CommentEntity> comments = new ArrayList<>();
+    @ManyToOne(targetEntity = AnswerEntity.class)
+    private AnswerEntity answerEntity;
+    
+    @ManyToOne(targetEntity = QuestionEntity.class)
+    private QuestionEntity questionEntity;
+    
     
     @CreationTimestamp
     @Column(columnDefinition = "TIMESTAMP", updatable = false, nullable = false)
@@ -53,9 +51,4 @@ public class AnswerEntity {
     @Column(columnDefinition = "TIMESTAMP", nullable = false)
     private LocalDateTime updated_at;
     
-    @ManyToOne(targetEntity = QuestionEntity.class, fetch = FetchType.LAZY)
-    private QuestionEntity question;
-    
-    @ManyToOne(targetEntity = UserEntity.class)
-    private UserEntity user;
 }

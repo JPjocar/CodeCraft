@@ -6,15 +6,20 @@ package com.cosmos.CodeCraft.Config;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.springframework.beans.factory.annotation.Value;
 
 
 public class StaticRoutes {
-    public static final Path root = Paths.get(System.getProperty("user.dir"));
-    public static final Path uploads = Paths.get("src/main/resources/static/uploads");
     
-    public static Path pathUploads() {
-        return root.resolve(uploads);
+    private static Path uploads;
+    
+    @Value("${spring.directory.uploads}")
+    private static void setPathUploads(String uploads) {
+        StaticRoutes.uploads = Paths.get(uploads);
     }
    
+    public static Path pathUploads(){
+        return Paths.get("C:/Users/Cosmos/Desktop/uploads");
+    }
     
 }

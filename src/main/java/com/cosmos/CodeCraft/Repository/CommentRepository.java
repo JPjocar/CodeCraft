@@ -4,11 +4,11 @@
  */
 package com.cosmos.CodeCraft.Repository;
 
-import com.cosmos.CodeCraft.Entity.UserEntity;
+import com.cosmos.CodeCraft.Entity.CommentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, Long>{
+public interface CommentRepository extends JpaRepository<CommentEntity, Long>{
     
 }

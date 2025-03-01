@@ -1,11 +1,10 @@
 package com.cosmos.CodeCraft;
 
-import com.cosmos.CodeCraft.Controller.QuestionController;
-import com.cosmos.CodeCraft.Entity.AnswerEntity;
-import com.cosmos.CodeCraft.Entity.QuestionEntity;
-import com.cosmos.CodeCraft.Repository.QuestionRepository;
-import java.time.LocalDate;
-import java.util.List;
+
+import com.cosmos.CodeCraft.Entity.TagEntity;
+import com.cosmos.CodeCraft.Repository.TagRepository;
+import java.time.LocalDateTime;
+import java.util.Date;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,5 +18,12 @@ public class CodeCraftApplication {
 	}
         
         
-
+//        @Bean
+//        CommandLineRunner iniciar(TagRepository tagRepository){
+//            return (args) -> {
+//                TagEntity java = new TagEntity(1l, "java", "description java", LocalDateTime.now(), LocalDateTime.now());
+//                tagRepository.save(java);
+//                
+//            };
+//        }
 }
