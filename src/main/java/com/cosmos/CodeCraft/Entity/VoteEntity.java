@@ -4,39 +4,39 @@
  */
 package com.cosmos.CodeCraft.Entity;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.Setter;
 
 @Entity
-@Table(name = "permissions")
+@Table(name = "votes")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PermissionEntity {
+public class VoteEntity {
+     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    private String name;
-        
-    @CreationTimestamp
-    @Column(columnDefinition = "TIMESTAMP", updatable = false, nullable = false)
-    private LocalDateTime created_at;
+    private PostEnum post_type;
     
-    @UpdateTimestamp
-    @Column(columnDefinition = "TIMESTAMP", nullable = false)
-    private LocalDateTime updated_at;
+    @ManyToOne(targetEntity = AnswerEntity.class)
+    private AnswerEntity answerEntity;
+    
+    @ManyToOne(targetEntity = QuestionEntity.class)
+    private QuestionEntity questionEntity;
+    
+    private int point;
     
 }

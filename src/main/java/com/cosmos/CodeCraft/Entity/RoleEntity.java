@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,6 +30,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class RoleEntity {
     
     @Id
@@ -36,8 +38,7 @@ public class RoleEntity {
     private Long id;
     
     private String name;
-    
-    
+
     @CreationTimestamp
     @Column(columnDefinition = "TIMESTAMP", updatable = false, nullable = false)
     private LocalDateTime created_at;
@@ -48,6 +49,9 @@ public class RoleEntity {
     
     
     @ManyToMany(targetEntity = PermissionEntity.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "roles_permissions", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
+    @JoinTable(name = "roles_permissions",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
     private Set<PermissionEntity> permissions;
 }

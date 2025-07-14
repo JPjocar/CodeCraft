@@ -7,7 +7,10 @@ package com.cosmos.CodeCraft.Service;
 import com.cosmos.CodeCraft.Dto.TagResponseDTO;
 import com.cosmos.CodeCraft.Dto.TagsCreationDTO;
 import com.cosmos.CodeCraft.Entity.TagEntity;
+import com.cosmos.CodeCraft.Exception.ResourceNotFoundException;
 import com.cosmos.CodeCraft.Repository.TagRepository;
+
+import java.util.List;
 import java.util.Optional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,26 +29,46 @@ public class TagService {
         //Verificar que el tag no exista 
         Optional<TagEntity> tagOptional = this.tagRepository.findTagEntityByName(tagsCreationDTO.getName());
         if(tagOptional.isPresent()){
-            throw new IllegalArgumentException("El tag ya existe");
+            throw new IllegalArgumentException("el tag ya existe");
         }
         ModelMapper modelMapper = new ModelMapper();
         TagEntity tagEntity = modelMapper.map(tagsCreationDTO, TagEntity.class);
         this.tagRepository.save(tagEntity);
-        return modelMapper.map(tagEntity, TagResponseDTO.class);
+        return mapToResponse(tagEntity);
     }
     
     //Verificar logica
     @Transactional
     public TagResponseDTO update(Long id, TagsCreationDTO tagsCreationDTO){
         //Verificar que el tag no exista
-        TagEntity tagActual = this.tagRepository.findById(id).orElseThrow();
+        TagEntity tagActual = this.tagRepository.findById(id)
+                .orElseThrow( () -> new ResourceNotFoundException("Tag", "id", id) );
         Optional<TagEntity> tagOptional = this.tagRepository.findTagEntityByName(tagsCreationDTO.getName());
         if( tagOptional.isPresent() && !tagActual.getName().equalsIgnoreCase(tagsCreationDTO.getName()) ){
             throw new IllegalArgumentException("El tag ya existe en los registros");
         }
+        tagActual.setName(tagsCreationDTO.getName());
+        tagActual.setDescription(tagsCreationDTO.getDescription());
+        this.tagRepository.save(tagActual);
+        return mapToResponse(tagActual);
+    }
+    
+    
+    public String delete(Long tag_id){
+        this.tagRepository.findById(tag_id).orElseThrow( () -> new ResourceNotFoundException("Tag", "id", tag_id));
+        this.tagRepository.deleteById(tag_id);
+        return "Tag removed!";
+    }
+
+    public List<TagResponseDTO> getAll(){
+        List<TagEntity> tags = this.tagRepository.findAll();
+        return tags.stream().map(this::mapToResponse).toList();
+    }
+
+    private TagResponseDTO mapToResponse(TagEntity tagEntity){
         ModelMapper modelMapper = new ModelMapper();
-        tagActual = modelMapper.map(tagsCreationDTO, TagEntity.class);
-        return modelMapper.map(tagActual, TagResponseDTO.class);
+        TagResponseDTO tagResponseDTO = modelMapper.map(tagEntity, TagResponseDTO.class);
+        return tagResponseDTO;
     }
     
 }

@@ -7,7 +7,9 @@ package com.cosmos.CodeCraft.Tests;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  *
@@ -15,6 +17,8 @@ import org.modelmapper.ModelMapper;
  */
 public class MainTests {
     public static void main(String[] args) {
-        System.out.println(Files.exists(Paths.get("src")));
+
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        System.out.println(passwordEncoder.encode("12345"));
     }
 }

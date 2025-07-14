@@ -28,19 +28,16 @@ public class CommentController {
     private CommentService commentService;
     
     @PostMapping("/question/{question_id}")
-    public ResponseEntity<CommentResponseDTO> createForQuestion(@RequestBody @Valid CommentCreationDTO commentCreationDTO, @PathVariable("question_id") Long id){
+    public CommentResponseDTO createForQuestion(@RequestBody @Valid CommentCreationDTO commentCreationDTO, @PathVariable("question_id") Long id){
+        System.out.println("ejecutando real");
         CommentResponseDTO commentResponseDTO = this.commentService.createForQuestion(commentCreationDTO, id);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(commentResponseDTO);
+        return commentResponseDTO;
     }
     
     @PostMapping("/answer/{answer_id}")
-    public ResponseEntity<CommentResponseDTO> createForAnswer(@RequestBody @Valid CommentCreationDTO commentCreationDTO, @PathVariable("answer_id") Long id){
+    public CommentResponseDTO createForAnswer(@RequestBody @Valid CommentCreationDTO commentCreationDTO, @PathVariable("answer_id") Long id){
         CommentResponseDTO commentResponseDTO = this.commentService.createForAnswer(commentCreationDTO, id);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(commentResponseDTO);
+        return commentResponseDTO;
     }
     
     

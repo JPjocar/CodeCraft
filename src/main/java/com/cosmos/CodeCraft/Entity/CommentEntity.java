@@ -4,13 +4,8 @@
  */
 package com.cosmos.CodeCraft.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,12 +29,15 @@ public class CommentEntity {
     private String post_type;
     
     @ManyToOne(targetEntity = UserEntity.class)
+    @JoinColumn(name = "user_id")
     private UserEntity user;
     
     @ManyToOne(targetEntity = AnswerEntity.class)
+    @JoinColumn(name = "answer_entity_id")
     private AnswerEntity answerEntity;
     
     @ManyToOne(targetEntity = QuestionEntity.class)
+    @JoinColumn(name = "question_entity_id")
     private QuestionEntity questionEntity;
     
     

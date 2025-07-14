@@ -6,17 +6,23 @@ package com.cosmos.CodeCraft.Service;
 
 import com.cosmos.CodeCraft.Dto.AnswerCreationDTO;
 import com.cosmos.CodeCraft.Dto.AnswerResponseDTO;
+import com.cosmos.CodeCraft.Dto.CommentResponseDTO;
+import com.cosmos.CodeCraft.Dto.CorrectAnswerDTO;
 import com.cosmos.CodeCraft.Entity.AnswerEntity;
 import com.cosmos.CodeCraft.Entity.QuestionEntity;
+import com.cosmos.CodeCraft.Exception.ResourceNotFoundException;
 import com.cosmos.CodeCraft.Repository.AnswerRepository;
 import com.cosmos.CodeCraft.Repository.QuestionRepository;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-
 public class AnswerService {
     
     @Autowired
@@ -25,39 +31,84 @@ public class AnswerService {
     @Autowired
     private QuestionRepository questionRepository;
     
+    @Autowired
+    private UserDetailsServiceImpl userDetailsServiceImpl;
+    
+    //Create a answer
+//    public AnswerResponseDTO create(AnswerCreationDTO answerCreationDTO, Long question_id){
+//        boolean existsQuestion = this.questionRepository.existsById(question_id);
+//        if(!existsQuestion){
+//            throw new ResourceNotFoundException("Question", "id", question_id);
+//        }
+//        QuestionEntity questionEntity = new QuestionEntity();
+//        questionEntity.setId(question_id);
+//        ModelMapper modelMapper = new ModelMapper();
+//        AnswerEntity answerEntity = modelMapper.map(answerCreationDTO, AnswerEntity.class);
+//        answerEntity.setQuestion(questionEntity);
+//        this.answerRepository.save(answerEntity);
+//        return modelMapper.map(answerEntity, AnswerResponseDTO.class);
+//    }
+    
     public AnswerResponseDTO create(AnswerCreationDTO answerCreationDTO, Long question_id){
-        boolean existsQuestion = this.questionRepository.existsById(question_id);
-        if(!existsQuestion){
-            throw new IllegalArgumentException("question_id NOT FOUND");
-        }
-        
-        QuestionEntity questionEntity = new QuestionEntity();
-        questionEntity.setId(question_id);
-        
+        QuestionEntity questionEntity = this.questionRepository.findById(question_id)
+                .orElseThrow(() -> new ResourceNotFoundException("Question", "id", question_id));
         ModelMapper modelMapper = new ModelMapper();
         AnswerEntity answerEntity = modelMapper.map(answerCreationDTO, AnswerEntity.class);
         answerEntity.setQuestion(questionEntity);
-        
         this.answerRepository.save(answerEntity);
-        return modelMapper.map(answerEntity, AnswerResponseDTO.class);
+        return mapToResponse(answerEntity);
     }
     
     public AnswerResponseDTO update(AnswerCreationDTO answerCreationDTO, Long answer_id){
-        AnswerEntity answerEntity = this.answerRepository.findById(answer_id).orElseThrow();
+        AnswerEntity answerEntity = this.answerRepository.findById(answer_id)
+                .orElseThrow( () -> new ResourceNotFoundException("Answer", "id", answer_id) );
         //Actualizar contenido de la respuesta
         answerEntity.setContent(answerCreationDTO.getContent());
         this.answerRepository.save(answerEntity);
-        ModelMapper modelMapper = new ModelMapper();
-        return modelMapper.map(answerEntity, AnswerResponseDTO.class);
+        return mapToResponse(answerEntity);
     }
     
     public String delete(Long id){
-        Optional<AnswerEntity> answerOptional = this.answerRepository.findById(id);
-        if(answerOptional.isEmpty()){
-            return "La respuesta con id: "+id+" no existe";
-        }
+        this.answerRepository.findById(id)
+                .orElseThrow( () -> new ResourceNotFoundException("Answer", "id", id) );
         this.answerRepository.deleteById(id);
-        return "Se ha eliminado la respuesta";
+        return "Answer removed";
+    }
+  
+    private AnswerResponseDTO mapToResponse(AnswerEntity answerEntity){
+        ModelMapper modelMapper = new ModelMapper();
+        AnswerResponseDTO answerResponseDTO = modelMapper.map(answerEntity, AnswerResponseDTO.class);
+        answerResponseDTO.setComments(answerEntity.getComments()
+                .stream()
+                .map(comment -> modelMapper.map(comment, CommentResponseDTO.class))
+                .toList());
+        return answerResponseDTO;
+    }
+    
+    @Transactional
+    public String isCorrect(CorrectAnswerDTO correctAnswerDTO, String username){
+        QuestionEntity question = this.questionRepository.findByIdAndOwner(correctAnswerDTO.question_id(), username)
+                .orElseThrow(() -> new ResourceNotFoundException("Question", "id", username));
+
+        List<AnswerEntity> answers = question.getAnswers();
+        boolean existsCorrect = answers.stream()
+                .anyMatch(answer -> answer.is_correct() == true);
+        if(existsCorrect){
+            return "Ya existe una respuesta correcta";
+        }
+        boolean existAnswer = answers.stream()
+                .anyMatch(answer -> Objects.equals(answer.getId(), correctAnswerDTO.answer_id()));
+        if(!existAnswer){
+            return "No existe la respuesta";
+        }
+        answers.forEach(answer -> {
+            if(Objects.equals(answer.getId(), correctAnswerDTO.answer_id())){
+                System.out.println("Answer id: "+answer.getId()+" y correct: "+correctAnswerDTO.answer_id());
+                answer.set_correct(true);
+            }
+        });
+        this.answerRepository.saveAll(answers);
+        return "La respuesta ha sido calificada como correcta";
     }
     
 }

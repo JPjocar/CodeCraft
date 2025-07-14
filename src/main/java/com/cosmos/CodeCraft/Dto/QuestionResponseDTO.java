@@ -17,8 +17,9 @@ import lombok.NoArgsConstructor;
 public class QuestionResponseDTO {
     private Long id;
     private String title;
+    private String slug;
     private String content;
     private Set<TagResponseDTO> tags;
     private List<CommentResponseDTO> comments;
-    private List<AnswerBasicDTO> answers;
+    private List<AnswerResponseDTO> answers;
 }

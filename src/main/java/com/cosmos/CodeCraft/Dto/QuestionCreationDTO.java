@@ -7,7 +7,7 @@ package com.cosmos.CodeCraft.Dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 public class QuestionCreationDTO {
     @NotBlank
     @NotNull
+    @Size(min = 10)
     private String title;
     
     @NotBlank
@@ -25,8 +26,8 @@ public class QuestionCreationDTO {
     @Size(min = 23)
     private String content;
     
-    @Size(min = 1, max = 5, message = "Deben existir hasta 5 tags")
-    private List<String> tags;
+
+    private Set<String> tags;
     
 //    private List<AnswerCreationDTO> answers;
 }

@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -40,6 +41,9 @@ public class QuestionEntity {
 
     private String title;
     
+    @Column(unique = true)
+    private String slug;
+    
     @Column(columnDefinition = "TEXT")
     private String content;
     
@@ -56,13 +60,28 @@ public class QuestionEntity {
     private LocalDateTime updated_at;
     
     
-    @OneToMany(targetEntity = AnswerEntity.class, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, mappedBy = "question")
+    @OneToMany(targetEntity = AnswerEntity.class, cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, mappedBy = "question", fetch = FetchType.LAZY)
     private List<AnswerEntity> answers = new ArrayList<>();
     
     @ManyToMany(targetEntity = TagEntity.class, fetch = FetchType.EAGER)
+    @JoinTable(name = "questions_tags",
+        joinColumns = @JoinColumn(name = "question_entity_id"),
+        inverseJoinColumns = @JoinColumn(name = "tags_id"))
     private Set<TagEntity> Tags = new HashSet<>();
     
     
-    @OneToMany(targetEntity = CommentEntity.class, fetch = FetchType.LAZY, mappedBy = "questionEntity", cascade = {CascadeType.REMOVE})
+    @OneToMany(
+            targetEntity = CommentEntity.class,
+            fetch = FetchType.LAZY, mappedBy = "questionEntity",
+            cascade = {CascadeType.REMOVE}
+    )
     private List<CommentEntity> comments = new ArrayList<>();
+    
+    
+    @ManyToOne(targetEntity = UserEntity.class)
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
+    
+    
+    
 }
