@@ -28,14 +28,15 @@ public class VoteEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    private PostEnum post_type;
-    
+
     @ManyToOne(targetEntity = AnswerEntity.class)
     private AnswerEntity answerEntity;
-    
-    @ManyToOne(targetEntity = QuestionEntity.class)
-    private QuestionEntity questionEntity;
+
+    @ManyToOne(targetEntity = UserEntity.class)
+    private UserEntity userEntity;
+
+    //@ManyToOne(targetEntity = QuestionEntity.class)
+    //private QuestionEntity questionEntity;
     
     private int point;
     

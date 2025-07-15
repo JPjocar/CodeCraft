@@ -11,6 +11,7 @@ import com.cosmos.CodeCraft.Entity.AnswerEntity;
 import com.cosmos.CodeCraft.Service.AnswerService;
 import com.cosmos.CodeCraft.Service.QuestionService;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,24 @@ public class AnswerController {
     
     @Autowired
     private AnswerService answerService;
-    
+
+
+    @PostMapping("/solution/{answer_id}")
+    public ResponseEntity<AnswerResponseDTO> isSolution(@PathVariable(name = "answer_id") Long id, @AuthenticationPrincipal String username){
+        AnswerResponseDTO answerResponseDTO = answerService.isSolution(id, username);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(answerResponseDTO);
+    }
+
+    @PostMapping("/vote/{answer_id}/{vote}")
+    public ResponseEntity<AnswerResponseDTO> vote(@PathVariable(name = "answer_id") Long answer_id, @PathVariable(name = "vote") boolean vote, @AuthenticationPrincipal String username){
+        AnswerResponseDTO answerResponseDTO = answerService.vote(answer_id, vote, username);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(answerResponseDTO);
+    }
+
     @PostMapping("/is-correct")
     public ResponseEntity<String> isCorrect(@RequestBody CorrectAnswerDTO correctAnswerDTO, @AuthenticationPrincipal String username){
         String resul = this.answerService.isCorrect(correctAnswerDTO, username);

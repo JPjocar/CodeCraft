@@ -10,14 +10,22 @@ import com.cosmos.CodeCraft.Dto.CommentResponseDTO;
 import com.cosmos.CodeCraft.Dto.CorrectAnswerDTO;
 import com.cosmos.CodeCraft.Entity.AnswerEntity;
 import com.cosmos.CodeCraft.Entity.QuestionEntity;
+import com.cosmos.CodeCraft.Entity.UserEntity;
+import com.cosmos.CodeCraft.Entity.VoteEntity;
+import com.cosmos.CodeCraft.Exception.InvalidDoubleVoteException;
+import com.cosmos.CodeCraft.Exception.QuestionOwnershipException;
 import com.cosmos.CodeCraft.Exception.ResourceNotFoundException;
+import com.cosmos.CodeCraft.Exception.SelfVotingException;
 import com.cosmos.CodeCraft.Repository.AnswerRepository;
 import com.cosmos.CodeCraft.Repository.QuestionRepository;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import com.cosmos.CodeCraft.Repository.VoteRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +38,55 @@ public class AnswerService {
     
     @Autowired
     private QuestionRepository questionRepository;
-    
+
+    @Autowired
+    private VoteRepository voteRepository;
+
     @Autowired
     private UserDetailsServiceImpl userDetailsServiceImpl;
-    
+
+
+
+    public AnswerResponseDTO isSolution(Long id, String username){
+        AnswerEntity answerEntity = this.answerRepository.findById(id).orElseThrow();
+        UserEntity userEntity = this.userDetailsServiceImpl.findByUsername(username);
+        QuestionEntity questionEntity = answerEntity.getQuestion();
+        //La pregunta es del dueño?
+        if(!questionEntity.getUser().getId().equals(userEntity.getId())){
+            throw new QuestionOwnershipException("Only question owner can mark as correct");
+        }
+        List<AnswerEntity> answerCorrect = this.answerRepository.findByQuestionAndIsCorrectTrueAndIdNot(questionEntity, answerEntity.getId());
+        if(!answerCorrect.isEmpty()){
+            answerCorrect.getFirst().set_correct(false);
+            this.answerRepository.save(answerCorrect.getFirst());
+        }
+        answerEntity.set_correct(!answerEntity.is_correct());
+        AnswerEntity answer = this.answerRepository.save(answerEntity);
+        return mapToResponse(answer);
+    }
+
+    public AnswerResponseDTO vote(Long answer_id, boolean vote, String username){
+        AnswerEntity answerEntity = this.answerRepository.findById(answer_id).orElseThrow();
+        UserEntity userEntity = this.userDetailsServiceImpl.findByUsername(username);
+        UserEntity userOwner = answerEntity.getUser();
+        int point = vote ? 1 : -1;
+        if(userOwner.getId().equals(userEntity.getId())){
+            throw new SelfVotingException("User don't self voting");
+        }
+        Optional<VoteEntity> voteEntity = this.voteRepository.findByUserEntityAndAnswerEntityAndPoint(userEntity, answerEntity, point);
+        if(voteEntity.isPresent()) {
+            throw new InvalidDoubleVoteException("User don't vote two o more times");
+        }
+        answerEntity.setScore(answerEntity.getScore()+point);
+        userOwner.setReputation(userOwner.getReputation()+2);
+        this.answerRepository.save(answerEntity);
+        this.userDetailsServiceImpl.save(userOwner);
+        this.voteRepository.save(new VoteEntity(null, answerEntity, userEntity, point));
+        return mapToResponse(answerEntity);
+    }
+
+
+
     //Create a answer
 //    public AnswerResponseDTO create(AnswerCreationDTO answerCreationDTO, Long question_id){
 //        boolean existsQuestion = this.questionRepository.existsById(question_id);

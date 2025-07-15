@@ -45,6 +45,13 @@ public class UserDetailsServiceImpl implements UserDetailsService{
     @Autowired
     private RoleRepository roleRepository;
 
+    public UserEntity save(UserEntity user){
+        return this.userRepository.save(user);
+    }
+
+    public UserEntity findByUsername(String username){
+        return this.userRepository.findUserEntityByUsername(username).orElseThrow();
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
