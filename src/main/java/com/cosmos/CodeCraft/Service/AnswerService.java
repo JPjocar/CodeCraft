@@ -69,22 +69,57 @@ public class AnswerService {
         AnswerEntity answerEntity = this.answerRepository.findById(answer_id).orElseThrow();
         UserEntity userEntity = this.userDetailsServiceImpl.findByUsername(username);
         UserEntity userOwner = answerEntity.getUser();
+        VoteEntity voteUser;
+        if(userOwner.getId().equals(userEntity.getId())){
+            throw new SelfVotingException("User don't self voting");
+        }
+        Optional<VoteEntity> voteEntity = this.voteRepository.findByUserEntityAndAnswerEntity(userEntity, answerEntity);
+        if(voteEntity.isPresent()) {
+            if (voteEntity.get().isUtil() == vote){
+                throw new InvalidDoubleVoteException("User don't vote two o more times");
+            }else {
+                voteEntity.get().setUtil(!voteEntity.get().isUtil());
+                voteUser = voteEntity.get();
+            }
+        }else{
+            voteUser = new VoteEntity(null, answerEntity, userEntity, vote);
+        }
+        answerEntity.setScore(answerEntity.getScore()+(vote ? 1 : -1));
+        userOwner.setReputation(userOwner.getReputation()+2);
+        this.answerRepository.save(answerEntity);
+        this.userDetailsServiceImpl.save(userOwner);
+        this.voteRepository.save(voteUser);
+        return mapToResponse(answerEntity);
+    }
+    /*
+    public AnswerResponseDTO vote(Long answer_id, boolean vote, String username){
+        AnswerEntity answerEntity = this.answerRepository.findById(answer_id).orElseThrow();
+        UserEntity userEntity = this.userDetailsServiceImpl.findByUsername(username);
+        UserEntity userOwner = answerEntity.getUser();
+        VoteEntity voteUser;
         int point = vote ? 1 : -1;
         if(userOwner.getId().equals(userEntity.getId())){
             throw new SelfVotingException("User don't self voting");
         }
-        Optional<VoteEntity> voteEntity = this.voteRepository.findByUserEntityAndAnswerEntityAndPoint(userEntity, answerEntity, point);
+        Optional<VoteEntity> voteEntity = this.voteRepository.findByUserEntityAndAnswerEntity(userEntity, answerEntity);
         if(voteEntity.isPresent()) {
-            throw new InvalidDoubleVoteException("User don't vote two o more times");
+            if (voteEntity.get().getPoint() == point){
+                throw new InvalidDoubleVoteException("User don't vote two o more times");
+            }else {
+                voteEntity.get().setPoint(voteEntity.get().getPoint()+point);
+                voteUser = voteEntity.get();
+            }
+        }else{
+            voteUser = new VoteEntity(null, answerEntity, userEntity, point);
         }
         answerEntity.setScore(answerEntity.getScore()+point);
         userOwner.setReputation(userOwner.getReputation()+2);
         this.answerRepository.save(answerEntity);
         this.userDetailsServiceImpl.save(userOwner);
-        this.voteRepository.save(new VoteEntity(null, answerEntity, userEntity, point));
+        this.voteRepository.save(voteUser);
         return mapToResponse(answerEntity);
     }
-
+*/
 
 
     //Create a answer

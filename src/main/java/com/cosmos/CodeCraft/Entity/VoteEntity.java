@@ -38,6 +38,6 @@ public class VoteEntity {
     //@ManyToOne(targetEntity = QuestionEntity.class)
     //private QuestionEntity questionEntity;
     
-    private int point;
+    private boolean util;
     
 }

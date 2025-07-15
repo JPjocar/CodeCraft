@@ -4,12 +4,7 @@
  */ 
 package com.cosmos.CodeCraft.Service;
 
-import com.cosmos.CodeCraft.Dto.AnswerBasicDTO;
-import com.cosmos.CodeCraft.Dto.AnswerResponseDTO;
-import com.cosmos.CodeCraft.Dto.CommentResponseDTO;
-import com.cosmos.CodeCraft.Dto.QuestionCreationDTO;
-import com.cosmos.CodeCraft.Dto.QuestionResponseDTO;
-import com.cosmos.CodeCraft.Dto.TagResponseDTO;
+import com.cosmos.CodeCraft.Dto.*;
 import com.cosmos.CodeCraft.Entity.QuestionEntity;
 import com.cosmos.CodeCraft.Entity.TagEntity;
 import com.cosmos.CodeCraft.Entity.UserEntity;
@@ -21,12 +16,7 @@ import com.cosmos.CodeCraft.Repository.TagRepository;
 import com.cosmos.CodeCraft.Repository.UserRepository;
 import com.github.slugify.Slugify;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
@@ -112,14 +102,11 @@ public class QuestionService {
     
     @Transactional
     public QuestionResponseDTO create(QuestionCreationDTO questionCreationDTO, String username){
-//        Slugify slg = Slugify.builder().build();
-//        String slug = slg.slugify(questionCreationDTO.getTitle());
         String slug = this.slg.slugify(questionCreationDTO.getTitle());
         this.slugExists(slug); 
         UserEntity userEntity = this.userRepository.findUserEntityByUsername(username).orElseThrow(() -> new ResourceNotFoundException("UserEntity", "username", username));
-        Set<TagEntity> tags = this.tagRepository.findTagEntityByNameIn(questionCreationDTO.getTags()).stream().collect(Collectors.toSet());
-        System.out.println(tags.size());
-        if(tags.isEmpty() || tags.size() > 5){
+        Set<TagEntity> tags = new HashSet<>(this.tagRepository.findTagEntityByNameIn(questionCreationDTO.getTags()));
+        if(tags.isEmpty() || tags.size() <= 5){
             throw new InsufficientTagsException(tags.size());
         }
         ModelMapper modelMapper = new ModelMapper();
@@ -193,7 +180,13 @@ public class QuestionService {
                             .toList());
                     return answerResponseDTO;
                 }).toList());
-        
+
+        if(questionEntity.getUser() != null){
+            UserResponseDTO userResponseDTO = modelMapper.map(questionEntity.getUser(), UserResponseDTO.class);
+            questionResponseDTO.setUser(userResponseDTO);
+        }
+
+
         return questionResponseDTO;
     }
     

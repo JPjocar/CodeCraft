@@ -10,5 +10,5 @@ import java.util.Optional;
 
 @Repository
 public interface VoteRepository extends JpaRepository<VoteEntity, Long> {
-    public Optional<VoteEntity> findByUserEntityAndAnswerEntityAndPoint(UserEntity userEntity, AnswerEntity answerEntity, int id);
+    public Optional<VoteEntity> findByUserEntityAndAnswerEntity(UserEntity userEntity, AnswerEntity answerEntity);
 }
