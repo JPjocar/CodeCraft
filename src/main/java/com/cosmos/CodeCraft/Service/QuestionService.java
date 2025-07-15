@@ -106,7 +106,7 @@ public class QuestionService {
         this.slugExists(slug); 
         UserEntity userEntity = this.userRepository.findUserEntityByUsername(username).orElseThrow(() -> new ResourceNotFoundException("UserEntity", "username", username));
         Set<TagEntity> tags = new HashSet<>(this.tagRepository.findTagEntityByNameIn(questionCreationDTO.getTags()));
-        if(tags.isEmpty() || tags.size() <= 5){
+        if(tags.isEmpty() || tags.size() > 5){
             throw new InsufficientTagsException(tags.size());
         }
         ModelMapper modelMapper = new ModelMapper();
