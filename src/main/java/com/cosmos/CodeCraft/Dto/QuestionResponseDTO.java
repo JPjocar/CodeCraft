@@ -22,4 +22,5 @@ public class QuestionResponseDTO {
     private Set<TagResponseDTO> tags;
     private List<CommentResponseDTO> comments;
     private List<AnswerResponseDTO> answers;
+    private UserResponseDTO user;
 }
