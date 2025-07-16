@@ -4,10 +4,7 @@
  */
 package com.cosmos.CodeCraft.Service;
 
-import com.cosmos.CodeCraft.Dto.AnswerCreationDTO;
-import com.cosmos.CodeCraft.Dto.AnswerResponseDTO;
-import com.cosmos.CodeCraft.Dto.CommentResponseDTO;
-import com.cosmos.CodeCraft.Dto.CorrectAnswerDTO;
+import com.cosmos.CodeCraft.Dto.*;
 import com.cosmos.CodeCraft.Entity.AnswerEntity;
 import com.cosmos.CodeCraft.Entity.QuestionEntity;
 import com.cosmos.CodeCraft.Entity.UserEntity;
@@ -137,12 +134,16 @@ public class AnswerService {
 //        return modelMapper.map(answerEntity, AnswerResponseDTO.class);
 //    }
     
-    public AnswerResponseDTO create(AnswerCreationDTO answerCreationDTO, Long question_id){
+    public AnswerResponseDTO create(AnswerCreationDTO answerCreationDTO, Long question_id, String username){
         QuestionEntity questionEntity = this.questionRepository.findById(question_id)
                 .orElseThrow(() -> new ResourceNotFoundException("Question", "id", question_id));
+
+        UserEntity userEntity = this.userDetailsServiceImpl.findByUsername(username);
+
         ModelMapper modelMapper = new ModelMapper();
         AnswerEntity answerEntity = modelMapper.map(answerCreationDTO, AnswerEntity.class);
         answerEntity.setQuestion(questionEntity);
+        answerEntity.setUser(userEntity);
         this.answerRepository.save(answerEntity);
         return mapToResponse(answerEntity);
     }
@@ -170,6 +171,10 @@ public class AnswerService {
                 .stream()
                 .map(comment -> modelMapper.map(comment, CommentResponseDTO.class))
                 .toList());
+        if(answerEntity.getUser() != null){
+            UserResponseDTO userResponseDTO = modelMapper.map(answerEntity.getUser(), UserResponseDTO.class);
+            answerResponseDTO.setUser(userResponseDTO);
+        }
         return answerResponseDTO;
     }
     

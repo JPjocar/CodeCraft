@@ -18,4 +18,5 @@ public class AnswerResponseDTO {
     private int score;
     private boolean is_correct;
     private List<CommentResponseDTO> comments;
+    private UserResponseDTO user;
 }

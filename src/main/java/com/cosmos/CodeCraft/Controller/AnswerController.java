@@ -60,8 +60,9 @@ public class AnswerController {
     
     //Create answers for a question
     @PostMapping("/{question_id}")
-    public AnswerResponseDTO create(@RequestBody @Valid AnswerCreationDTO answerCreationDTO, @PathVariable("question_id") Long question_id){
-        AnswerResponseDTO answerResponseDTO = this.answerService.create(answerCreationDTO, question_id);
+    public AnswerResponseDTO create(@RequestBody @Valid AnswerCreationDTO answerCreationDTO, @PathVariable("question_id") Long question_id,@AuthenticationPrincipal String username){
+        AnswerResponseDTO answerResponseDTO = this.answerService.create(answerCreationDTO, question_id, username );
+
         return answerResponseDTO;
     }
     
