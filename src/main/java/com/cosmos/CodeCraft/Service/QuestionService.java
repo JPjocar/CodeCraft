@@ -8,6 +8,7 @@ import com.cosmos.CodeCraft.Dto.*;
 import com.cosmos.CodeCraft.Entity.QuestionEntity;
 import com.cosmos.CodeCraft.Entity.TagEntity;
 import com.cosmos.CodeCraft.Entity.UserEntity;
+import com.cosmos.CodeCraft.Exception.ExceededTagsException;
 import com.cosmos.CodeCraft.Exception.InsufficientTagsException;
 import com.cosmos.CodeCraft.Exception.QuestionAlreadyExistsException;
 import com.cosmos.CodeCraft.Exception.ResourceNotFoundException;
@@ -107,7 +108,7 @@ public class QuestionService {
         UserEntity userEntity = this.userRepository.findUserEntityByUsername(username).orElseThrow(() -> new ResourceNotFoundException("UserEntity", "username", username));
         Set<TagEntity> tags = new HashSet<>(this.tagRepository.findTagEntityByNameIn(questionCreationDTO.getTags()));
         if(tags.isEmpty() || tags.size() > 5){
-            throw new InsufficientTagsException(tags.size());
+            throw new ExceededTagsException("Tags excedidos");
         }
         ModelMapper modelMapper = new ModelMapper();
         QuestionEntity questionEntity = modelMapper.map(questionCreationDTO, QuestionEntity.class);

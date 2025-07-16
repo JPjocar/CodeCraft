@@ -7,7 +7,9 @@ package com.cosmos.CodeCraft.Controller;
 import com.cosmos.CodeCraft.Dto.AnswerCreationDTO;
 import com.cosmos.CodeCraft.Dto.AnswerResponseDTO;
 import com.cosmos.CodeCraft.Dto.CorrectAnswerDTO;
+import com.cosmos.CodeCraft.Dto.VoteResponseDTO;
 import com.cosmos.CodeCraft.Entity.AnswerEntity;
+import com.cosmos.CodeCraft.Entity.VoteEntity;
 import com.cosmos.CodeCraft.Service.AnswerService;
 import com.cosmos.CodeCraft.Service.QuestionService;
 import jakarta.validation.Valid;
@@ -27,12 +29,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(path = "answer")
+@RequestMapping(path = "/answer")
 public class AnswerController {
     
     @Autowired
     private AnswerService answerService;
 
+    @GetMapping("/test")
+    public String test(){
+        return "Test endpoint working";
+    }
 
     @PostMapping("/solution/{answer_id}")
     public ResponseEntity<AnswerResponseDTO> isSolution(@PathVariable(name = "answer_id") Long id, @AuthenticationPrincipal String username){
@@ -43,11 +49,11 @@ public class AnswerController {
     }
 
     @PostMapping("/vote/{answer_id}/{vote}")
-    public ResponseEntity<AnswerResponseDTO> vote(@PathVariable(name = "answer_id") Long answer_id, @PathVariable(name = "vote") boolean vote, @AuthenticationPrincipal String username){
-        AnswerResponseDTO answerResponseDTO = answerService.vote(answer_id, vote, username);
+    public ResponseEntity<VoteResponseDTO> vote(@PathVariable(name = "answer_id") Long answer_id, @PathVariable(name = "vote") boolean vote, @AuthenticationPrincipal String username){
+        VoteResponseDTO voteUser = answerService.vote(answer_id, vote, username);
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(answerResponseDTO);
+                .status(HttpStatus.OK)
+                .body(voteUser);
     }
 
     @PostMapping("/is-correct")
