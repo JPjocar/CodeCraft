@@ -45,7 +45,9 @@ public class AnswerService {
 
 
     public AnswerResponseDTO isSolution(Long id, String username){
-        AnswerEntity answerEntity = this.answerRepository.findById(id).orElseThrow();
+        AnswerEntity answerEntity = this.answerRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("answer", "id", id)
+        );
         UserEntity userEntity = this.userDetailsServiceImpl.findByUsername(username);
         QuestionEntity questionEntity = answerEntity.getQuestion();
         //La pregunta es del dueño?
@@ -62,7 +64,7 @@ public class AnswerService {
         return mapToResponse(answer);
     }
 
-    public AnswerResponseDTO vote(Long answer_id, boolean vote, String username){
+    public VoteResponseDTO vote(Long answer_id, boolean vote, String username){
         AnswerEntity answerEntity = this.answerRepository.findById(answer_id).orElseThrow();
         UserEntity userEntity = this.userDetailsServiceImpl.findByUsername(username);
         UserEntity userOwner = answerEntity.getUser();
@@ -86,7 +88,7 @@ public class AnswerService {
         this.answerRepository.save(answerEntity);
         this.userDetailsServiceImpl.save(userOwner);
         this.voteRepository.save(voteUser);
-        return mapToResponse(answerEntity);
+        return mapToResponseVoteDTO(voteUser);
     }
     /*
     public AnswerResponseDTO vote(Long answer_id, boolean vote, String username){
@@ -177,6 +179,16 @@ public class AnswerService {
         }
         return answerResponseDTO;
     }
+
+    private VoteResponseDTO mapToResponseVoteDTO(VoteEntity voteEntity){
+        ModelMapper modelMapper = new ModelMapper();
+        VoteResponseDTO voteResponseDTO = modelMapper.map(voteEntity, VoteResponseDTO.class);
+        voteResponseDTO.setUserResponseDTO(modelMapper.map(voteEntity.getUserEntity(), UserResponseDTO.class));
+        voteResponseDTO.setAnswerResponseDTO(modelMapper.map(voteEntity.getAnswerEntity(), AnswerResponseDTO.class));
+        return voteResponseDTO;
+    }
+
+
     
     @Transactional
     public String isCorrect(CorrectAnswerDTO correctAnswerDTO, String username){

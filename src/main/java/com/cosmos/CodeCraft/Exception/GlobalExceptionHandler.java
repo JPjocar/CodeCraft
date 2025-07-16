@@ -62,5 +62,28 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("Argument not valid", "Algun parametro no cumple las validaciones"));
     }
 
+    @ExceptionHandler(QuestionOwnershipException.class)
+    public ResponseEntity<ErrorResponse> handleQuestionAlreadyExists2(QuestionOwnershipException ex){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Question Ownership Exception", "Solo el creador puede marcar la respuesta como correcta"));
+    }
+
+    @ExceptionHandler(SelfVotingException.class)
+    public ResponseEntity<ErrorResponse> handleSelfVotingException(SelfVotingException ex){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("Self Voting Exception", "No puedes votar tu misma respuesta"));
+    }
+
+    @ExceptionHandler(InvalidDoubleVoteException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidDoubleVoteException(InvalidDoubleVoteException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("Invalid Double Vote Exception", "No puedes votar dos veces una respuesta"));
+    }
+
+    @ExceptionHandler(ExceededTagsException.class)
+    public ResponseEntity<ErrorResponse> handleExceededTagsException(ExceededTagsException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("Exceeded Tags Exception", "Maximo 5 tags por pregunta"));
+    }
 
 }
