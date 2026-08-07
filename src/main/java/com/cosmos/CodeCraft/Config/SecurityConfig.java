@@ -52,6 +52,12 @@ public class SecurityConfig {
 
                     http.requestMatchers("/tag/**").hasRole("ADMIN");
 
+                    http.requestMatchers(
+                            "/v3/api-docs/**",
+                            "/v3/api-docs",
+                            "/swagger-ui/**",
+                            "/swagger-ui.html"
+                    ).permitAll();
                     http.anyRequest().authenticated();
                 })
              .addFilterBefore(new JwtTokenValidator(jwtUtils), BasicAuthenticationFilter.class)
