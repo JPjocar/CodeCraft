@@ -9,9 +9,11 @@ import com.cosmos.CodeCraft.Service.UserDetailsServiceImpl;
 import com.cosmos.CodeCraft.Utils.JwtUtils;
 import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -32,11 +34,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
-
+@EnableMethodSecurity // habilitar @preAuthorize
 public class SecurityConfig {
     @Autowired
     private JwtUtils jwtUtils;
-    
+
+    @Value("${codecraft.cors.allowed-origins}")
+    private String[] allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity
@@ -47,6 +52,9 @@ public class SecurityConfig {
                     http.requestMatchers(HttpMethod.POST, "/auth/sign-up").permitAll();
                     http.requestMatchers(HttpMethod.POST, "/auth/log-in").permitAll();
                     http.requestMatchers(HttpMethod.GET, "/answer/test").permitAll();
+
+                    // Ruta para administrar roles
+                    http.requestMatchers("/admin/**").hasRole("ADMIN");
 
                     http.requestMatchers("/question/**").authenticated();
 
@@ -68,7 +76,9 @@ public class SecurityConfig {
 @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:4200")); // Origen de Angular
+        // Origen(es) del frontend, configurables por entorno (CORS_ALLOWED_ORIGINS).
+        // Con allowCredentials=true no se puede usar "*", asi que la lista debe ser explicita.
+        config.setAllowedOrigins(Arrays.asList(allowedOrigins));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         config.setExposedHeaders(Arrays.asList("Authorization")); // Encabezados expuestos al frontend

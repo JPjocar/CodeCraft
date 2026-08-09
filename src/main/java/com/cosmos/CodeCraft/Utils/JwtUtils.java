@@ -10,6 +10,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -21,11 +22,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtUtils {
 
+    /** Longitud minima para una clave HMAC-SHA256 (256 bits). */
+    private static final int MIN_KEY_LENGTH = 32;
+
     @Value("${spring.jwt.private.key}")
     private String privateKey;
 
     @Value("${spring.jwt.private.user}")
     private String userGenerator;
+
+    /**
+     * Falla al arrancar si la clave es debil o no esta configurada. Es preferible
+     * que la aplicacion no levante a que firme tokens con un secreto adivinable.
+     */
+    @PostConstruct
+    void validateSigningKey() {
+        if (privateKey == null || privateKey.isBlank() || privateKey.length() < MIN_KEY_LENGTH) {
+            throw new IllegalStateException(
+                    "La clave de firma JWT debe tener al menos " + MIN_KEY_LENGTH
+                    + " caracteres. Define la variable de entorno JWT_SECRET.");
+        }
+    }
 
     public String createToken(Authentication authentication) {
         Algorithm algorithm = Algorithm.HMAC256(privateKey);

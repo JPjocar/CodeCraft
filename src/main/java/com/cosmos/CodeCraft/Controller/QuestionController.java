@@ -50,13 +50,6 @@ public class QuestionController {
     }
 
     
-    //Crear una pregunta
-    @PostMapping("/create")
-    public QuestionResponseDTO create2(@RequestBody @Valid QuestionCreationDTO questionCreationDTO){
-        QuestionResponseDTO questionCreated = this.questionService.create2(questionCreationDTO);
-        return questionCreated;
-    }
-    
     //Create Question with answers
     @PostMapping
     public ResponseEntity<QuestionResponseDTO> create(@RequestBody @Valid QuestionCreationDTO questionCreationDTO, @AuthenticationPrincipal String username){

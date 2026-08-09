@@ -7,16 +7,18 @@ package com.cosmos.CodeCraft.Service;
 import com.cosmos.CodeCraft.Dto.AuthCreateRequest;
 import com.cosmos.CodeCraft.Dto.AuthLoginRequest;
 import com.cosmos.CodeCraft.Dto.AuthResponse;
+import com.cosmos.CodeCraft.Dto.UserRolesResponseDTO;
 import com.cosmos.CodeCraft.Entity.RoleEntity;
 import com.cosmos.CodeCraft.Entity.UserEntity;
-import com.cosmos.CodeCraft.Exception.InsufficientTagsException;
 import com.cosmos.CodeCraft.Exception.ResourceNotFoundException;
+import com.cosmos.CodeCraft.Exception.UsernameAlreadyExistsException;
 import com.cosmos.CodeCraft.Repository.RoleRepository;
 import com.cosmos.CodeCraft.Repository.UserRepository;
 import com.cosmos.CodeCraft.Utils.JwtUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,9 +31,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService{
+
+    /** Unico rol que se concede en el registro publico. */
+    private static final String DEFAULT_ROLE = "USER";
 
     @Autowired
     private UserRepository userRepository;
@@ -102,17 +108,23 @@ public class UserDetailsServiceImpl implements UserDetailsService{
         return new UsernamePasswordAuthenticationToken(userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
     }
 
+    // Crea un usuario con valor DEFAULT_ROLE por defecto
+    @Transactional
     public AuthResponse create(AuthCreateRequest authCreateRequest){
         String username = authCreateRequest.username();
         String password = authCreateRequest.password();
-        
-        Set<String> rolesString = authCreateRequest.authCreateRoleRequest().roles();
-        Set<RoleEntity> roles = this.roleRepository.findRoleEntityByNameIn(rolesString);
-        
-        if(roles.isEmpty()){
-            throw new InsufficientTagsException(0);
+
+        if(this.userRepository.findUserEntityByUsername(username).isPresent()){
+            throw new UsernameAlreadyExistsException(username);
         }
-        
+
+        Set<RoleEntity> roles = this.roleRepository.findRoleEntityByNameIn(Set.of(DEFAULT_ROLE));
+
+        if(roles.isEmpty()){
+            throw new IllegalStateException(
+                    "El rol por defecto '" + DEFAULT_ROLE + "' no existe en la base de datos");
+        }
+
         UserEntity userEntity = UserEntity.builder()
                 .username(username)
                 .password(this.passwordEncoder.encode(password))
@@ -136,5 +148,29 @@ public class UserDetailsServiceImpl implements UserDetailsService{
 
         String token = this.jwtUtils.createToken(authentication);
         return new AuthResponse(userCreated.getUsername(), "User created", token, true);
+    }
+
+    // Asignar roles a los usuarios, se ejecuta despues de loggin o despues de refresh token pero hay que chequearlo
+    @Transactional
+    public UserRolesResponseDTO assignRoles(String username, Set<String> roleNames){
+        UserEntity userEntity = this.userRepository.findUserEntityByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+
+        Set<RoleEntity> roles = this.roleRepository.findRoleEntityByNameIn(roleNames);
+
+        // Si algun rol de rolNames no existe debera lanzar un error, es mejor lanzar un error que quitar persmisos sin avisar
+        if(roles.size() != roleNames.size()){
+            Set<String> found = roles.stream().map(RoleEntity::getName).collect(Collectors.toSet());
+            Set<String> unknown = roleNames.stream().filter(role -> !found.contains(role)).collect(Collectors.toSet());
+            throw new ResourceNotFoundException("Role", "name", String.join(", ", unknown));
+        }
+
+        userEntity.setRoles(roles);
+        UserEntity updated = this.userRepository.save(userEntity);
+
+        return new UserRolesResponseDTO(
+                updated.getId(),
+                updated.getUsername(),
+                updated.getRoles().stream().map(RoleEntity::getName).collect(Collectors.toSet()));
     }
 }

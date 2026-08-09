@@ -86,4 +86,16 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("Exceeded Tags Exception", "Maximo 5 tags por pregunta"));
     }
 
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameAlreadyExists(UsernameAlreadyExistsException ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("Username Already Exists", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidFilenameException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFilename(InvalidFilenameException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("Invalid Filename", ex.getMessage()));
+    }
+
 }

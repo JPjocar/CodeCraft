@@ -4,16 +4,11 @@
  */
 package com.cosmos.CodeCraft.Dto;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-/**
- *
- * @author Cosmos
- */
+
 public record AuthCreateRequest(
-        @NotNull String username,
-        @NotNull String password,
-        @Valid AuthCreateRoleRequest authCreateRoleRequest ) {
-    
+        @NotBlank @Size(min = 3, max = 30) String username,
+        @NotBlank @Size(min = 8, message = "La contrasena debe tener al menos 8 caracteres") String password) {
 }

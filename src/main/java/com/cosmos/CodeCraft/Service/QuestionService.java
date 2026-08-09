@@ -88,19 +88,6 @@ public class QuestionService {
 //    }
     
     
-    public QuestionResponseDTO create2(QuestionCreationDTO questionCreationDTO){
-        Set<TagEntity> tags = this.tagRepository.findTagEntityByNameIn(questionCreationDTO.getTags()).stream().collect(Collectors.toSet());
-        if(tags.isEmpty() || tags.size() > 5){
-            //Excepcion cuando no hay suficiente tags
-            throw new InsufficientTagsException(tags.size());
-        }
-        ModelMapper modelMapper = new ModelMapper();
-        QuestionEntity questionEntity = modelMapper.map(questionCreationDTO, QuestionEntity.class);
-        questionEntity.setTags(tags);
-        this.questionRepository.save(questionEntity);
-        return mapToResponse(questionEntity);
-    }
-    
     @Transactional
     public QuestionResponseDTO create(QuestionCreationDTO questionCreationDTO, String username){
         String slug = this.slg.slugify(questionCreationDTO.getTitle());

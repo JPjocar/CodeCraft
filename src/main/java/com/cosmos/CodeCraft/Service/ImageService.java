@@ -5,55 +5,93 @@
 package com.cosmos.CodeCraft.Service;
 
 import com.cosmos.CodeCraft.Config.StaticRoutes;
+import com.cosmos.CodeCraft.Exception.InvalidFilenameException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ImageService {
-    
-    //Retornar Imagenes
-    public Resource createResource(String filename){
-        Path file = StaticRoutes.pathUploads().resolve(filename).normalize();
-        try{
-            Resource resource = new UrlResource(file.toUri());
-            if(resource.exists() || resource.isReadable()){
-                return resource;
-            }else{
-                return null;
-            }
-        }catch(MalformedURLException e){
-            System.out.println("Resource doesn`t exist");
-            return null;
+
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
+
+    @Autowired
+    private StaticRoutes staticRoutes;
+
+    /** Base publica de las imagenes. Antes estaba hardcodeada a localhost:8080. */
+    @Value("${codecraft.uploads.public-url}")
+    private String publicUrl;
+
+    /**
+     * Resuelve un nombre de archivo recibido del cliente contra el directorio de
+     * uploads y garantiza que el resultado NO se sale de esa carpeta.
+     *
+     * Sin esta comprobacion, un filename como "../../../../windows/win.ini"
+     * (o su version codificada) permitia leer archivos arbitrarios del servidor.
+     */
+    public Path resolveSafely(String filename) {
+        if (filename == null || filename.isBlank()) {
+            throw new InvalidFilenameException("El nombre de archivo es obligatorio");
         }
+
+        Path root = this.staticRoutes.pathUploads();
+        Path resolved;
+        try {
+            resolved = root.resolve(filename).normalize().toAbsolutePath();
+        } catch (InvalidPathException ex) {
+            throw new InvalidFilenameException("Nombre de archivo no valido: " + filename);
+        }
+
+        if (!resolved.startsWith(root)) {
+            throw new InvalidFilenameException("Nombre de archivo no valido: " + filename);
+        }
+        return resolved;
     }
 
-    
     public String create(MultipartFile image_file) throws IOException {
-        String originalFileName = image_file.getOriginalFilename();
-        String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-        String filename = UUID.randomUUID() + extension;
-       
-        if(!Files.exists(StaticRoutes.pathUploads()))
-            Files.createDirectories(StaticRoutes.pathUploads());
-           
         String type = image_file.getContentType();
-        if(!type.startsWith("image/")){
-            throw new IOException("Only images");
+        if (type == null || !type.startsWith("image/")) {
+            throw new InvalidFilenameException("Solo se permiten imagenes");
         }
-        
-        Path destination = StaticRoutes.pathUploads().resolve(filename).normalize();
+
+        // La extension se deriva del nombre que envia el cliente, asi que se
+        // valida contra una lista blanca. Concatenar la extension cruda permitia
+        // colar separadores de ruta ("foto.jpg/../../evil.jsp") y escribir fuera
+        // del directorio de uploads.
+        String extension = extractExtension(image_file.getOriginalFilename());
+        String filename = UUID.randomUUID() + extension;
+
+        Path root = this.staticRoutes.pathUploads();
+        if (!Files.exists(root)) {
+            Files.createDirectories(root);
+        }
+
+        Path destination = resolveSafely(filename);
         Files.copy(image_file.getInputStream(), destination);
-        
-        return "http://localhost:8080/uploads/"+filename;
+
+        return this.publicUrl + "/" + filename;
+    }
+
+    private String extractExtension(String originalFileName) {
+        if (originalFileName == null) {
+            throw new InvalidFilenameException("El archivo no tiene nombre");
+        }
+        int dot = originalFileName.lastIndexOf('.');
+        if (dot < 0) {
+            throw new InvalidFilenameException("El archivo no tiene extension");
+        }
+        String extension = originalFileName.substring(dot).toLowerCase(Locale.ROOT);
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new InvalidFilenameException("Extension no permitida: " + extension);
+        }
+        return extension;
     }
 }
