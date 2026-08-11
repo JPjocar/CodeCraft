@@ -14,14 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Verifica la defensa contra path traversal de ImageService.
- *
- * Se prueba a nivel de unidad a proposito: por HTTP, Tomcat ya rechaza por su
- * cuenta las barras codificadas (%2f, %5c), asi que un test de integracion
- * devolveria 400 sin llegar a ejecutar nuestra comprobacion. Aqui se ejercita
- * el metodo directamente.
- */
 class ImageServiceTest {
 
     private ImageService imageService;

@@ -26,17 +26,9 @@ public class ImageService {
     @Autowired
     private StaticRoutes staticRoutes;
 
-    /** Base publica de las imagenes. Antes estaba hardcodeada a localhost:8080. */
     @Value("${codecraft.uploads.public-url}")
     private String publicUrl;
 
-    /**
-     * Resuelve un nombre de archivo recibido del cliente contra el directorio de
-     * uploads y garantiza que el resultado NO se sale de esa carpeta.
-     *
-     * Sin esta comprobacion, un filename como "../../../../windows/win.ini"
-     * (o su version codificada) permitia leer archivos arbitrarios del servidor.
-     */
     public Path resolveSafely(String filename) {
         if (filename == null || filename.isBlank()) {
             throw new InvalidFilenameException("El nombre de archivo es obligatorio");
@@ -62,10 +54,6 @@ public class ImageService {
             throw new InvalidFilenameException("Solo se permiten imagenes");
         }
 
-        // La extension se deriva del nombre que envia el cliente, asi que se
-        // valida contra una lista blanca. Concatenar la extension cruda permitia
-        // colar separadores de ruta ("foto.jpg/../../evil.jsp") y escribir fuera
-        // del directorio de uploads.
         String extension = extractExtension(image_file.getOriginalFilename());
         String filename = UUID.randomUUID() + extension;
 

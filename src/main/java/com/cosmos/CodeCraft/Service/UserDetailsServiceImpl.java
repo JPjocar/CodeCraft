@@ -36,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService{
 
-    /** Unico rol que se concede en el registro publico. */
     private static final String DEFAULT_ROLE = "USER";
 
     @Autowired

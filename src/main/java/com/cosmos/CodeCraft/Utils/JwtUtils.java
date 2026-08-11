@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtUtils {
 
-    /** Longitud minima para una clave HMAC-SHA256 (256 bits). */
     private static final int MIN_KEY_LENGTH = 32;
 
     @Value("${spring.jwt.private.key}")
@@ -31,10 +30,6 @@ public class JwtUtils {
     @Value("${spring.jwt.private.user}")
     private String userGenerator;
 
-    /**
-     * Falla al arrancar si la clave es debil o no esta configurada. Es preferible
-     * que la aplicacion no levante a que firme tokens con un secreto adivinable.
-     */
     @PostConstruct
     void validateSigningKey() {
         if (privateKey == null || privateKey.isBlank() || privateKey.length() < MIN_KEY_LENGTH) {

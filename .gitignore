@@ -33,9 +33,7 @@ build/
 .vscode/
 
 ### CodeCraft ###
-# Directorio por defecto de imagenes subidas (spring.directory.uploads)
 /uploads/
-# Configuracion local con secretos: nunca versionar
 application-local.properties
 *.env
 .env

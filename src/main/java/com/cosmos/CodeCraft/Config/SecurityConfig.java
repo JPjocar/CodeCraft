@@ -76,8 +76,6 @@ public class SecurityConfig {
 @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Origen(es) del frontend, configurables por entorno (CORS_ALLOWED_ORIGINS).
-        // Con allowCredentials=true no se puede usar "*", asi que la lista debe ser explicita.
         config.setAllowedOrigins(Arrays.asList(allowedOrigins));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));

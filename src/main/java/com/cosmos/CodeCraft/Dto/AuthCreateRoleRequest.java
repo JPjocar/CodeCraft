@@ -10,8 +10,6 @@ import java.util.Set;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * Roles a asignar a un usuario. Solo se acepta desde endpoints de administracion
- * (PUT /admin/users/{username}/roles); el registro publico nunca lee este DTO.
  *
  * @author Cosmos
  */

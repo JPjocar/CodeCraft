@@ -32,18 +32,14 @@ public class ImageController {
     //Retornar recurso de imagen
     @GetMapping("/{filename}")
     public ResponseEntity<Resource> get(@PathVariable("filename") String filename){
-        // resolveSafely lanza InvalidFilenameException (-> 400) si el nombre
-        // intenta salir del directorio de uploads.
         Path file = this.imageService.resolveSafely(filename);
         try {
             Resource resource = new UrlResource(file.toUri());
 
-            // Antes era '&&': un archivo existente pero no legible pasaba el filtro.
             if(!resource.exists() || !resource.isReadable()){
                 return ResponseEntity.notFound().build();
             }
 
-            // El Content-Type se deduce del archivo en disco, no de la conexion.
             String contentType = Files.probeContentType(file);
             MediaType mediaType = contentType != null
                     ? MediaType.parseMediaType(contentType)

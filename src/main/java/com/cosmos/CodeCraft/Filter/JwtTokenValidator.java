@@ -44,10 +44,6 @@ public class JwtTokenValidator extends OncePerRequestFilter{
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        // Sin cabecera, o con un esquema que no es Bearer (Basic, Digest...), la
-        // peticion sigue sin autenticar: seran las reglas de autorizacion quienes
-        // decidan si el endpoint es publico. Antes se hacia substring(7) a ciegas,
-        // lo que reventaba con StringIndexOutOfBoundsException -> 500.
         if(header == null || !header.startsWith(BEARER_PREFIX)){
             filterChain.doFilter(request, response);
             return;
@@ -67,10 +63,6 @@ public class JwtTokenValidator extends OncePerRequestFilter{
             Authentication authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (JWTVerificationException ex) {
-            // Los filtros se ejecutan ANTES del DispatcherServlet, asi que
-            // GlobalExceptionHandler (@RestControllerAdvice) nunca ve esta
-            // excepcion. Si la dejaramos propagar, un token invalido devolveria
-            // un 500 con stacktrace en vez de un 401. La escribimos a mano.
             SecurityContextHolder.clearContext();
             writeUnauthorized(response, ex.getMessage());
             return;
